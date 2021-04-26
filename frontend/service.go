@@ -64,7 +64,7 @@ func NewDarksideStreamer(cache *common.BlockCache) (walletrpc.DarksideStreamerSe
 func checkTaddress(taddr string) error {
 	match, err := regexp.Match("\\At[a-zA-Z0-9]{34}\\z", []byte(taddr))
 	if err != nil || !match {
-		return errors.New("Invalid address")
+		return errors.New("invalid address")
 	}
 	return nil
 }
@@ -123,13 +123,13 @@ func (s *lwdStreamer) GetTaddressTxids(addressBlockFilter *walletrpc.Transparent
 	}
 
 	if addressBlockFilter.Range == nil {
-		return errors.New("Must specify block range")
+		return errors.New("block range is required")
 	}
 	if addressBlockFilter.Range.Start == nil {
-		return errors.New("Must specify a start block height")
+		return errors.New("start block height is required")
 	}
 	if addressBlockFilter.Range.End == nil {
-		return errors.New("Must specify an end block height")
+		return errors.New("end block height is required")
 	}
 	params := make([]json.RawMessage, 1)
 	request := &common.ZcashdRpcRequestGetaddresstxids{
@@ -202,7 +202,7 @@ func (s *lwdStreamer) GetBlockRange(span *walletrpc.BlockRange, resp walletrpc.C
 	blockChan := make(chan *walletrpc.CompactBlock)
 	errChan := make(chan error)
 	if span.Start == nil || span.End == nil {
-		return errors.New("Must specify start and end heights")
+		return errors.New("start and end heights are required")
 	}
 
 	peerip := s.peerIPFromContext(resp.Context())
@@ -332,7 +332,7 @@ func (s *lwdStreamer) GetTreeState(ctx context.Context, id *walletrpc.BlockID) (
 		params[0] = hashJSON
 	}
 	if gettreestateReply.Sapling.Commitments.FinalState == "" {
-		return nil, errors.New("zcashd did not return treestate")
+		return nil, errors.New("zerod did not return treestate")
 	}
 	return &walletrpc.TreeState{
 		Network: s.chainName,
@@ -348,7 +348,7 @@ func (s *lwdStreamer) GetTreeState(ctx context.Context, id *walletrpc.BlockID) (
 func (s *lwdStreamer) GetTransaction(ctx context.Context, txf *walletrpc.TxFilter) (*walletrpc.RawTransaction, error) {
 	if txf.Hash != nil {
 		if len(txf.Hash) != 32 {
-			return nil, errors.New("Transaction ID has invalid length")
+			return nil, errors.New("transaction ID has invalid length")
 		}
 		leHashStringJSON, err := json.Marshal(hex.EncodeToString(parser.Reverse(txf.Hash)))
 		if err != nil {
@@ -381,9 +381,9 @@ func (s *lwdStreamer) GetTransaction(ctx context.Context, txf *walletrpc.TxFilte
 	}
 
 	if txf.Block != nil && txf.Block.Hash != nil {
-		return nil, errors.New("Can't GetTransaction with a blockhash+num. Please call GetTransaction with txid")
+		return nil, errors.New("can't GetTransaction with a blockhash+num. Please call GetTransaction with txid")
 	}
-	return nil, errors.New("Please call GetTransaction with txid")
+	return nil, errors.New("please call GetTransaction with txid")
 }
 
 // GetLightdInfo gets the LightWalletD (this server) info, and includes information
@@ -402,7 +402,7 @@ func (s *lwdStreamer) SendTransaction(ctx context.Context, rawtx *walletrpc.RawT
 	// "hex"             (string) The transaction hash in hex
 
 	if rawtx == nil || rawtx.Data == nil {
-		return nil, errors.New("Bad Transaction or Data")
+		return nil, errors.New("bad Transaction or Data")
 	}
 
 	// Construct raw JSON-RPC params
@@ -508,7 +508,7 @@ var mempoolList []string
 var lastMempool time.Time
 
 func (s *lwdStreamer) GetMempoolTx(exclude *walletrpc.Exclude, resp walletrpc.CompactTxStreamer_GetMempoolTxServer) error {
-	if time.Now().Sub(lastMempool).Seconds() >= 2 {
+	if time.Since(lastMempool).Seconds() >= 2 {
 		lastMempool = time.Now()
 		// Refresh our copy of the mempool.
 		params := make([]json.RawMessage, 0)
@@ -727,12 +727,12 @@ func (s *lwdStreamer) Ping(ctx context.Context, in *walletrpc.Duration) (*wallet
 func (s *DarksideStreamer) Reset(ctx context.Context, ms *walletrpc.DarksideMetaState) (*walletrpc.Empty, error) {
 	match, err := regexp.Match("\\A[a-fA-F0-9]+\\z", []byte(ms.BranchID))
 	if err != nil || !match {
-		return nil, errors.New("Invalid branch ID")
+		return nil, errors.New("invalid branch ID")
 	}
 
 	match, err = regexp.Match("\\A[a-zA-Z0-9]+\\z", []byte(ms.ChainName))
 	if err != nil || !match {
-		return nil, errors.New("Invalid chain name")
+		return nil, errors.New("invalid chain name")
 	}
 	err = common.DarksideReset(int(ms.SaplingActivation), ms.BranchID, ms.ChainName)
 	if err != nil {

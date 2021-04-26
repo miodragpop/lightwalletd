@@ -191,7 +191,7 @@ func GetLightdInfo() (*walletrpc.LightdInfo, error) {
 	}
 	// If the sapling consensus branch doesn't exist, it must be regtest
 	var saplingHeight int
-	if saplingJSON, ok := getblockchaininfoReply.Upgrades["76b809bb"]; ok { // Sapling ID
+	if saplingJSON, ok := getblockchaininfoReply.Upgrades["7a737763"]; ok { // Sapling ID
 		saplingHeight = saplingJSON.ActivationHeight
 	}
 
@@ -376,7 +376,7 @@ func BlockIngestor(c *BlockCache, rep int) {
 			Log.Fatal("Cache add failed:", err)
 		}
 		// Don't log these too often.
-		if time.Now().Sub(lastLog).Seconds() >= 4 && c.GetNextHeight() == height+1 && height != lastHeightLogged {
+		if time.Since(lastLog).Seconds() >= 4 && c.GetNextHeight() == height+1 && height != lastHeightLogged {
 			lastLog = time.Now()
 			lastHeightLogged = height
 			Log.Info("Ingestor adding block to cache: ", height)
